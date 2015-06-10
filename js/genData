@@ -2,7 +2,7 @@
 
 // Util for reading IES file from local disk.
 
-ies_folder = "F:\\Yuntian_Chai\\IES_Parser2\\ies\\";
+ies_folder = "F:\\Yuntian_Chai\\Github\\IESTexture\\ies\\";
  var fs = require('fs');
 
 function ToFloatArr(arr)
@@ -101,4 +101,4 @@ var FindMaxCD = function(cdArr)
      )
  }
 
- ReadIESFile(ies_folder+"point_street"+".IES");
+ ReadIESFile(ies_folder+"test"+".IES");

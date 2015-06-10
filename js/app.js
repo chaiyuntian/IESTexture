@@ -3,4 +3,8 @@
  */
 var cvs = document.getElementById("canvas1");
 
-RenderIESToTexture(pars_sample6,cvs,800,800);
+
+
+
+
+RenderIESToTexture(pars_sample9,cvs,800,800);

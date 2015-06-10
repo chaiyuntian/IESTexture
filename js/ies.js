@@ -137,11 +137,8 @@ function ToFloatArr(arr)
     for(var i=0;i<arr.length;i++)
     {
         ret.push(parseFloat(arr[i]));
-
     }
-
     return ret;
-
 }
 
 
@@ -160,7 +157,6 @@ var FindMaxCD = function(cdArr)
 
 
 function binarySearch(items, value){
-
 
     var start = 0,
         end = items.length - 1;
@@ -232,7 +228,8 @@ function ComputeFilterPosition(value,sortedValues){
     if(rightIndex<N){
         var rightValue = sortedValues[rightIndex];
         var delta = rightValue - leftValue;
-        if(delta>0.0001) {frac = (value - leftValue) / delta;}
+        //if(delta>0.0001) {frac = (value - leftValue) / delta;}
+        if(delta>0.0000000001){frac = (value - leftValue) / delta;}
     }
     return leftIndex+frac;
 }
@@ -283,14 +280,91 @@ function ReadIESString(data)
 }
 
 
+
+function drawLine(ctx,sx,sy,ex,ey,width){
+    width = width || 1.0;
+    ctx.strokeStyle='red';
+    ctx.lineWidth=width;
+    ctx.lineCap='square';
+    ctx.beginPath();
+    ctx.moveTo(sx,sy);
+    ctx.lineTo(ex,ey);
+    ctx.stroke();
+    ctx.closePath();
+
+}
+
+function drawGrids(ctx,tb,lb,offsetx,offsety){
+    var x = tb.x||0.0;
+    var y = tb.y||0.0;
+    var w = tb.w||0.0;
+    var h = tb.h||0.0;
+    var nx = tb.nx||0.0;
+    var ny = tb.ny||0.0;
+
+    var dx = w/nx;
+    var dy = h/ny;
+
+    // label tags
+    var ux = lb.x||0.0;
+    var uy = lb.y||0.0;
+    var uw = lb.w||0.0;
+    var uh = lb.h||0.0;
+
+    var ux_xo = lb.xxo||0.0;
+    var ux_yo = lb.xyo||0.0;
+
+    var uy_xo = lb.yxo||0.0;
+    var uy_yo = lb.yyo||0.0;
+
+
+    var udx = uw/nx;
+    var udy = uh/ny;
+
+    var i,j;
+    // draw horizontal lines
+
+    for(i=0;i<=ny;i++)
+    {
+        var cy = y+i*dy;
+        drawLine(ctx,x,cy,x+w,cy);
+
+        var x_label = uy+udy*i;
+        drawText(ctx,x_label.toString(),x+w+ux_xo,cy+ux_yo,8);
+    }
+
+    // draw vertical lines
+    for(j=0;j<=nx;j++)
+    {
+        var cx = x+j*dx;
+        drawLine(ctx,cx,y,cx,y+h);
+
+        var y_label = ux+udx*j;
+        drawText(ctx,y_label.toString(),cx+uy_xo,y+h+8+uy_yo,8);
+    }
+
+    // draw texts
+}
+
+function drawText(ctx,ctn,x,y,fsize){
+
+    fsize = fsize||"8px";
+    ctx.font = "8px Courier New";
+    ctx.fillStyle = "red";
+    ctx.fillText(ctn, x,y);
+}
+
+
+
+
 function RenderIESToTexture(pars,cvs,w,h)
 {
     var vaArr = pars.v_angles;
     var haArr = pars.h_angles;
     var cds = pars.candelas;
     var maxcd = pars.max_cd;
-    w = w || 256;
-    h = h || 256;
+    //w = w || 256;
+    //h = h || 256;
 
     wi = 1.0 / w; // width inversed.
     hi = 1.0 / h; // height inversed.
@@ -306,56 +380,33 @@ function RenderIESToTexture(pars,cvs,w,h)
     temp = [];
     for (var x=0;x<w;x++){
         for(var y=0;y<h;y++){
-            var idx = 4*(x*h+y);
+            var idx = 4*(x+y*w);
 
             var fracX = parseFloat(x*wi);
-            var fracY =parseFloat(y*hi);
+            var fracY = parseFloat(y*hi);
             var ha = fracX*360.0;
             var va = fracY*180.0;
             var pix01 = Interpolate2D(ha,va,haArr,vaArr,cds)*invmax;
-            //temp.push(pix01);
+            temp.push(pix01);
+
             var pix255 = parseInt(pix01*255.0);
 
             imgData.data[idx]=pix255;
-            imgData.data[idx+1]=0;
-            imgData.data[idx+2]=0;
+            imgData.data[idx+1]=pix255;
+            imgData.data[idx+2]=pix255;
             imgData.data[idx+3]=255;
         }
     }
 
-    //console.log(temp);
-    ctx.putImageData(imgData,0,0);
+    var offsetx = 0;
+    var offsety = 0;
+    ctx.putImageData(imgData,offsetx,offsety);
+
+    drawGrids(ctx,{x:offsetx,y:offsety,w:w-offsetx*2,h:h-offsety*2,nx:10,ny:10},{x:0,y:0,w:360,h:180});
+
+    console.log(temp);
 
 }
-
-
-
-var IESLoader = function(){
-    this.width = 256;
-    this.height = 256;
-
-    this.canvas = null;
-
-    this.load = function(filename){
-
-        arr = ReadIESFile(filename);
-
-        // parse array elements
-
-        // Vertical Angles
-
-
-        // Horizontal Angles
-
-
-        // Candela values
-
-
-    }
-
-
-
-};
 
 //var a = ExtractDataZone(IES.SAMPLES.s1);
 
