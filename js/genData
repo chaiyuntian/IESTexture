@@ -1,0 +1,104 @@
+// Require Node.js
+
+// Util for reading IES file from local disk.
+
+ies_folder = "F:\\Yuntian_Chai\\IES_Parser2\\ies\\";
+ var fs = require('fs');
+
+function ToFloatArr(arr)
+{
+    ret = [];
+    for(var i=0;i<arr.length;i++)
+    {
+        ret.push(parseFloat(arr[i]));
+
+    }
+
+    return ret;
+
+}
+
+
+
+function ExtractDataZone(str)
+{
+    var exp = /TILT *= *NONE[\s\S]+/g;
+    var suc = str.match(exp);
+    if(suc){
+        s = suc[0].replace(/TILT=NONE\r*\n/,"");
+        s = s.replace(/( *\r*\n+ *| +)/g,",");
+        s = s.replace(/, $/g,"");
+        console.log(s);
+        temp = s.split(",");
+
+        arr = [];
+        for(var i=0;i<temp.length;i++)
+        {
+            if(temp[i]){arr.push(temp[i]);}
+        }
+
+        return arr;
+    }
+}
+
+var FindMaxCD = function(cdArr)
+{
+    max = 0;
+    for(var i=0;i<cdArr.length;i++)
+    {
+        if(cdArr[i]>max){
+            max = cdArr[i];
+        }
+    }
+    return max;
+
+}
+
+
+
+ function ReadIESString(data)
+ {
+
+     var a=ExtractDataZone(data);
+     //console.log(a);
+
+     var par = {};
+     var nv = parseInt(a[3]);
+     var nh = parseInt(a[4]);
+
+     var dt = a.slice(13);
+     var v_angles = dt.slice(0,nv);
+     var h_angles = dt.slice(nv,nv+nh);
+
+     var candelas = dt.slice(nv+nh);
+
+     var bValid = (dt.length == nv+nh+nv*nh);
+     if(!bValid){ //console.log("Length  not equal!");
+         //console.log(candelas.length+","+nv+","+nh);
+         return null;
+         }
+
+     par.N_Vertical = nv;
+     par.N_Horizontal = nh;
+
+     par.v_angles = ToFloatArr(v_angles);
+     par.h_angles = ToFloatArr(h_angles);
+     par.candelas = ToFloatArr(candelas);
+     par.max_cd = FindMaxCD(par.candelas);
+     console.log(par);
+     console.log(bValid);
+     return a;
+ }
+
+ function ReadIESFile(filename)
+ {
+     fs.readFile(filename,{encoding:"utf-8"},function(err,data){
+             if (err){throw err;}
+             //console.log(data);
+             ReadIESString(data);
+             return data;
+         }
+     )
+ }
+
+ ReadIESFile(ies_folder+"point_street"+".IES");
