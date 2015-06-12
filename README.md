@@ -1,2 +1,2 @@
 # IESTexture
-An Javascript Util for rendering IES files to texture.
+A Javascript Utility for rendering IES files to texture.
